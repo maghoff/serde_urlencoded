@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_urlencoded;
 
 #[test]
@@ -39,4 +41,40 @@ fn deserialize_unit() {
     assert_eq!(serde_urlencoded::from_str("&"), Ok(()));
     assert_eq!(serde_urlencoded::from_str("&&"), Ok(()));
     assert!(serde_urlencoded::from_str::<()>("first=23").is_err());
+}
+
+#[test]
+fn deserialize_string_in_struct_in_enum() {
+    #[derive(Deserialize, Debug, PartialEq, Eq)]
+    struct ItemStruct {
+        field: String
+    }
+
+    #[derive(Deserialize, Debug, PartialEq, Eq)]
+    #[serde(tag = "tag")]
+    enum Test {
+        Item(ItemStruct)
+    };
+
+    let result = Test::Item(ItemStruct{ field: "42".to_owned() });
+
+    assert_eq!(serde_urlencoded::from_str("tag=Item&field=42"), Ok(result));
+}
+
+#[test]
+fn deserialize_i32_in_struct_in_enum() {
+    #[derive(Deserialize, Debug, PartialEq, Eq)]
+    struct ItemStruct {
+        field: i32
+    }
+
+    #[derive(Deserialize, Debug, PartialEq, Eq)]
+    #[serde(tag = "tag")]
+    enum Test {
+        Item(ItemStruct)
+    };
+
+    let result = Test::Item(ItemStruct{ field: 42 });
+
+    assert_eq!(serde_urlencoded::from_str("tag=Item&field=42"), Ok(result));
 }
